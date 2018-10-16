@@ -1,6 +1,10 @@
+html,body {
+  background-image: url("http://static.tumblr.com/jw8fmba/RqUluoxaa/309560.jpeg");
+}
+
 .App {
   text-align: center;
-  background-image: url("http://static.tumblr.com/jw8fmba/RqUluoxaa/309560.jpeg");
+  background-size: cover;
   color: #fff;
 }
 
