@@ -1,51 +1,10 @@
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
 import queryString from 'query-string';
 
 let defaultTextColor = '#fff';
 let defaultStyle = {
     color: defaultTextColor
-};
-
-let fakeServerData = {
-    user: {
-        name: 'Brian',
-        playlists: [
-      {
-        name: 'My favorites',
-        songs: [
-          {name: 'Beat It', duration: 1345}, 
-          {name: 'Cannelloni Makaroni', duration: 1236},
-          {name: 'Rosa helikopter', duration: 70000}
-        ]
-      },
-      {
-        name: 'Discover Weekly',
-        songs: [
-          {name: 'Beat It', duration: 1345}, 
-          {name: 'Cannelloni Makaroni', duration: 1236},
-          {name: 'Rosa helikopter', duration: 70000}
-        ]
-      },
-      {
-        name: 'Another playlist - the best!',
-        songs: [
-          {name: 'Beat It', duration: 1345}, 
-          {name: 'Hallelujah', duration: 1236},
-          {name: 'Rosa helikopter', duration: 70000}
-        ]
-      },
-      {
-        name: 'Playlist - yeah!',
-        songs: [
-          {name: 'Beat It', duration: 1345}, 
-          {name: 'Cannelloni Makaroni', duration: 1236},
-          {name: 'Hej Hej Monika', duration: 70000}
-        ]
-      }
-    ]
-    }
 };
 
 class PlaylistCounter extends Component {
@@ -138,6 +97,7 @@ class App extends Component {
                     return trackDataPromise;
                     })
 
+                //console.log(playlists[0].images[2].url)
                 let allTracksDataPromises = 
                     Promise.all(trackDataPromises)
                 let playlistsPromise =  allTracksDataPromises.then(trackDatas => {
@@ -156,10 +116,20 @@ class App extends Component {
 
             .then(playlists => this.setState({
                 playlists: playlists.map(item => {
-                  return {  
-                    name: item.name,
-                    imageUrl: item.images.find(image => image.height == 60).url,
-                    songs: item.trackDatas.slice(0,3)
+                    if ((item.images.length === 0) || !(item.images.find(image => image.height === 60))) {
+                    //if (item.image === undefined || item.image === null) {
+                        console.log(item)
+                        return {  
+                        name: item.name,
+                        songs: item.trackDatas.slice(0,3)
+                        }
+                        //return
+                    }
+                        return {  
+                        name: item.name,
+                        imageUrl: item.images.find(image => image.height === 60).url,
+                        songs: item.trackDatas.slice(0,3)
+                        
                     }
                 })
             }))
@@ -170,9 +140,16 @@ class App extends Component {
         }, 2000);
     }
     render() {
+
         let playlistToRender = 
             this.state.user && this.state.playlists 
             ? this.state.playlists.filter(playlist => {
+
+                if (playlist === undefined || playlist === null) {
+            
+                    return
+                }
+
                 let matchesPlaylist = playlist.name.toLowerCase().includes(
                     this.state.filterString.toLowerCase())
                 let matchesSong     = playlist.songs.find(song => song.name.toLowerCase()
@@ -183,7 +160,7 @@ class App extends Component {
             <div className="App">
                 {this.state.user ? 
                   <div>
-                    <h1 style={{...defaultStyle, 'font-size': '54px'}}>Music Switcher</h1>
+                    <h1 style={{...defaultStyle, 'fontSize': '54px'}}>Music Switcher</h1>
                     <h2 style={{...defaultStyle}}>{this.state.user.name}</h2>
                     <PlaylistCounter playlists={playlistToRender}/> 
                     <HoursCounter playlists={playlistToRender}/>
@@ -197,7 +174,7 @@ class App extends Component {
                       : 'https://spotifybackenduser.herokuapp.com/login' 
                     }
                       /*location.protocol + ''/login'}*/
-                    style={{'font-size': '20px', padding: '20px', 'margin-top': '20px'}}>Sign in with Spotify</button>
+                    style={{'fontSize': '20px', padding: '20px', 'marginTop': '20px'}}>Sign in with Spotify</button>
                 }
                   </div>
         );
