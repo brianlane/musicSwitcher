@@ -3,10 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "ajv": "^6.5.5",
+    "axios": "^0.18.0",
+    "node-gyp": "^3.8.0",
     "query-string": "^6.2.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
-    "react-scripts": "2.0.4"
+    "react-scripts": "2.0.4",
+    "rebuild": "^0.1.2",
+    "reset-css": "^4.0.1"
   },
   "scripts": {
     "start": "react-scripts start",

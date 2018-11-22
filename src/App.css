@@ -46,6 +46,11 @@ h2 {
     color: #fff;
 }
 
+html, body {
+    
+}
+
 body {
      background: "http://static.tumblr.com/jw8fmba/RqUluoxaa/309560.jpeg";
+     padding: 10px;
 }

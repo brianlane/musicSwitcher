@@ -1,8 +1,17 @@
 import React, { Component } from 'react';
+import axios, { post } from 'axios';
 import './App.css';
+import 'reset-css/reset.css';
 import queryString from 'query-string';
 
 let defaultTextColor = '#fff';
+let counterStyle = {
+    width: "40%", 
+    display: 'inline-block',
+    'marginBottom': '10px', 
+    'fontSize': '20px', 
+    'lineHeight': '30px'
+}
 let defaultStyle = {
     color: defaultTextColor
 };
@@ -10,7 +19,7 @@ let defaultStyle = {
 class PlaylistCounter extends Component {
     render() {
         return (
-            <div style={{width: "40%", display: 'inline-block'}}>
+            <div style={counterStyle}>
                 <h2 style={defaultStyle}>{this.props.playlists.length} Playlists</h2>
             </div>
         );
@@ -26,7 +35,7 @@ class HoursCounter extends Component {
             return sum + eachSong.duration
         }, 0)
         return (
-            <div style={{width: "40%", display: 'inline-block'}}>
+            <div style={counterStyle}>
                 <h2 style={defaultStyle}>{Math.round(totalDuration/60)} Hours</h2>
             </div>
         );
@@ -36,10 +45,10 @@ class HoursCounter extends Component {
 class Filter extends Component {
     render() {
         return (
-            <div>
-                <img/>
-                Playlist<input type="text" onKeyUp={event => 
-                    this.props.onTextChange(event.target.value)}/>
+            <div style={{'fontSize': '20px'}}>
+                Playlist <input type="text" onKeyUp={event => 
+                    this.props.onTextChange(event.target.value)}
+                    style={{'fontSize': '20px', padding: '10px'}}/>
             </div>
         );
     }
@@ -49,9 +58,9 @@ class Playlist extends Component {
     render() {
         let playlist = this.props.playlist
         return (
-            <div style={{...defaultStyle,width: "25%",display: 'inline-block'}}>
-                <img alt="playlist image" src = {playlist.imageUrl} />
-                <h3>{playlist.name}</h3>
+            <div style={{...defaultStyle,width: "25%",display: 'inline-block', padding: '10px'}}>
+                <h3 style={{'fontSize': '18px', 'fontWeight': '900', padding: '5px'}}>{playlist.name}</h3>
+                <img alt="playlist" src = {playlist.imageUrl} />
                 <ul>
                     {playlist.songs.map(song =>
                         <li>{song.name}</li>
@@ -68,8 +77,14 @@ class App extends Component {
         super();
         this.state = {
             serverData: {},
-            filterString: ''    
+            filterString: '',
+            file: null 
+
         }
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.fileUpload = this.fileUpload.bind(this);
+
     }
     componentDidMount() {
         let parsed = queryString.parse(window.location.search);
@@ -89,15 +104,14 @@ class App extends Component {
             .then(playlistData => {
                     let playlists = playlistData.items
                     let trackDataPromises = playlists.map(playlist => { 
-                    let responsePromise = fetch(playlist.tracks.href, {
-                        headers: {'Authorization': 'Bearer ' + accessToken}
-                    })
-                    let trackDataPromise = responsePromise
-                        .then(response => response.json())
-                    return trackDataPromise;
+                        let responsePromise = fetch(playlist.tracks.href, {
+                            headers: {'Authorization': 'Bearer ' + accessToken}
+                        })
+                        let trackDataPromise = responsePromise
+                            .then(response => response.json())
+                        return trackDataPromise;
                     })
 
-                //console.log(playlists[0].images[2].url)
                 let allTracksDataPromises = 
                     Promise.all(trackDataPromises)
                 let playlistsPromise =  allTracksDataPromises.then(trackDatas => {
@@ -117,13 +131,11 @@ class App extends Component {
             .then(playlists => this.setState({
                 playlists: playlists.map(item => {
                     if ((item.images.length === 0) || !(item.images.find(image => image.height === 60))) {
-                    //if (item.image === undefined || item.image === null) {
                         console.log(item)
                         return {  
                         name: item.name,
                         songs: item.trackDatas.slice(0,3)
                         }
-                        //return
                     }
                         return {  
                         name: item.name,
@@ -139,7 +151,30 @@ class App extends Component {
             this.setState({filterString: ''});
         }, 2000);
     }
+
+
+    fileUpload(file) {
+        const formData = new FormData();
+        formData.append('file',file)
+        const config = {
+            headers: {
+                'content-type': 'multipart/form-data'
+            }
+        }
+        
+    }
+    handleChange(event) {
+        this.setState({file: event.target.files[0]});
+    }
+    handleSubmit(event) {
+        event.preventDefault();
+        this.fileUpload(this.state.file).then((response)=>{
+            console.log(response.data);
+        })
+    }
+
     render() {
+
 
         let playlistToRender = 
             this.state.user && this.state.playlists 
@@ -160,21 +195,36 @@ class App extends Component {
             <div className="App">
                 {this.state.user ? 
                   <div>
-                    <h1 style={{...defaultStyle, 'fontSize': '54px'}}>Music Switcher</h1>
-                    <h2 style={{...defaultStyle}}>{this.state.user.name}</h2>
+                    <h1 style={{...defaultStyle, 'fontSize': '54px', 'marginTop':'5px'}}>Music Switcher</h1>
+                    <h2 style={{...defaultStyle, 'fontSize': '28px'}}>{this.state.user.name}</h2>
+                    <br></br>
+
                     <PlaylistCounter playlists={playlistToRender}/> 
                     <HoursCounter playlists={playlistToRender}/>
                     <Filter onTextChange={text => this.setState({filterString: text})}/> 
                     {playlistToRender.map(playlist =>
                         <Playlist playlist={playlist} /> 
                     )}
-                  </div> : <button onClick={() =>
+                  </div> : <React.Fragment>
+                    {/*
+                    <h1 style ={{'fontSize': '24px'}}>Convert Apple Music Playlists to Spotify Playlists</h1>
+                    <h1 style ={{'fontSize': '22px'}}>Upload iTunes Library XML file</h1>
+                    <h1>File > Library > Export Library</h1>
+                    <form onSubmit={this.handleSubmit}>
+                        <input onChange={this.handleChange} id="file" value={this.state.value} type="file" name="file" accept=".xml"/>
+                        <input type="submit" value="Submit"/>
+                    </form>
+                    */}
+
+                    <br></br>
+                    <button onClick={() =>
                       window.location = window.location.href.includes('localhost')
                       ? 'http://localhost:8888/login'
                       : 'https://spotifybackenduser.herokuapp.com/login' 
                     }
-                      /*location.protocol + ''/login'}*/
-                    style={{'fontSize': '20px', padding: '20px', 'marginTop': '20px'}}>Sign in with Spotify</button>
+                    style={{'fontSize': '28px', padding: '20px', 'marginTop': '20px'}}>Sign in with Spotify</button>
+
+                </React.Fragment>
                 }
                   </div>
         );
